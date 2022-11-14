@@ -46,7 +46,6 @@ import androidx.core.content.ContextCompat;
 public class Listnr extends Activity implements
         RecognitionListener {
 
-
     /* Used to handle permission request */
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
 
@@ -57,7 +56,6 @@ public class Listnr extends Activity implements
     private AudioManager audioManager;
     private Button btn;
     private int btnFlag = 0;
-    private int flag = 0;
     private boolean flag2 = true;
 
     @Override
@@ -65,20 +63,21 @@ public class Listnr extends Activity implements
         super.onCreate(state);
         setContentView(R.layout.main);
 
-
         resultView = findViewById(R.id.resultView);
         btn = findViewById(R.id.btn_start);
         btn.setOnClickListener(view -> onClick());
-
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         LibVosk.setLogLevel(LogLevel.INFO);
 
-        // Check if user has given permission to record audio, init the model after permission is granted
-        int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO);
+        // Check if user has given permission to record audio, init the model after
+        // permission is granted
+        int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.RECORD_AUDIO);
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.RECORD_AUDIO },
+                    PERMISSIONS_REQUEST_RECORD_AUDIO);
         } else {
             initModel();
         }
@@ -92,10 +91,9 @@ public class Listnr extends Activity implements
                 (exception) -> Log.w("MyActivity", "Failed to unpack the model" + exception.getMessage()));
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
+            @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == PERMISSIONS_REQUEST_RECORD_AUDIO) {
@@ -132,30 +130,22 @@ public class Listnr extends Activity implements
             e.printStackTrace();
         }
         resultView.append(hypothesis + "\n");
-        if (hypothesis.matches(".*[E|e]xcuse me.*|.*hello.*")) {
-            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamMaxVolume(STREAM_MUSIC) / 2, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-            flag = 1;
-        }
         if (hypothesis.matches(".*stop.*|.*pause.*")) {
             resultView.append("Pause detected\n");
             if (audioManager.isMusicActive()) {
                 resultView.append("Music is active");
                 audioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
             }
-        } else if (hypothesis.matches(".*less.*|.*decrease.*") ) {
-            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_MUSIC)-5, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        } else if (hypothesis.matches(".*less.*|.*decrease.*")) {
+            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_MUSIC) - 5,
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         }
         if ((hypothesis.matches(".*play.*|.*start.*"))) {
             audioManager.abandonAudioFocus(null);
         }
-        if((hypothesis.matches(".*increase*|.*more.*"))){
-            if(flag == 0 )
-                audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_MUSIC)+5, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-            else if(flag == 1)
-            {
-                audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_MUSIC)*2, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-                flag = 0;
-            }
+        if ((hypothesis.matches(".*increase*|.*more.*"))) {
+            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_MUSIC) + 5,
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         }
 
     }
@@ -167,7 +157,7 @@ public class Listnr extends Activity implements
 
     @Override
     public void onPartialResult(String hypothesis) {
-        //resultView.append(hypothesis + "\n");
+        // resultView.append(hypothesis + "\n");
     }
 
     @Override
@@ -195,8 +185,6 @@ public class Listnr extends Activity implements
         }
     }
 
-
-
     private void pause(boolean checked) {
         if (speechService != null) {
             speechService.setPause(checked);
@@ -207,22 +195,19 @@ public class Listnr extends Activity implements
         resultView.setText(message);
     }
 
-    private void onClick(){
-        if(btnFlag == 0){
+    private void onClick() {
+        if (btnFlag == 0) {
             recognizeMicrophone();
             btnFlag = 1;
             btn.setText("Stop");
-        }
-        else if (btnFlag == 1){
-            if(flag2){
+        } else if (btnFlag == 1) {
+            if (flag2) {
                 pause(flag2);
                 flag2 = !flag2;
                 btn.setText("Resume");
-            }
-            else
-            {
+            } else {
                 pause(flag2);
-                flag2 =!flag2;
+                flag2 = !flag2;
                 btn.setText("Stop");
             }
         }
